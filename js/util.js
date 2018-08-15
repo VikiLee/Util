@@ -21,6 +21,50 @@
   }
 
   /**
+   * 复制对象，第一个参数是目标，第二个三个...是被复制对象，最后一个参数，如果是布尔值，则是是否深复制的参数
+   */
+  Util.extend = function() {
+    var target = arguments[0], // 目标对象
+      copy = null, // 被复制对象
+      targetAttribute = null, // 被复制对象的某个属性，有可能还是object类型或者array类型
+      length = arguments.length,
+      i = 1,
+      j = 0,
+      isDeepCopy = false;
+
+    // 如果最后一个参数是布尔值，则是是否深复制的变量，不是要复制的对象
+    if(typeof arguments[length - 1] === "boolean") {
+      isDeepCopy = arguments[length - 1];
+      length -= 1; // 不复制该参数
+    }
+
+    for(; i < length; i++) {
+      copy = arguments[i];
+      if(copy) {
+        for(var key in copy) {
+          // 不复制原形链里面的属性
+          if(copy.hasOwnProperty(key)) {
+            if(isDeepCopy && this.isPlainObject(copy[key])) {
+              // 如果是普通对象
+              targetAttribute = this.isPlainObject(target[key]) ? target[key] : {};
+              // 普通对象，通过递归调用的方式复制
+              target[key] = this.extend(targetAttribute, copy[key], isDeepCopy);
+            } else if(isDeepCopy && this.isArray(copy[key])) {
+              // 如果是数组
+              targetAttribute = this.isArray(target[key]) ? target[key] : [];
+              // 数组对象，通过递归调用的方式复制
+              target[key] = this.extend(targetAttribute, copy[key], isDeepCopy);
+            } else {
+              target[key] = copy[key];
+            }
+          }
+        }
+      }
+    }
+    return target;
+  }
+
+  /**
    * 判断对象是否是数组类型，规避了不同frame下判断数组不正确
    * @param arr 被判断对象
    */
@@ -187,6 +231,9 @@
     return uniqueArr;
   }
 
+  Util.ajax = function(options) {
+
+  }
 
   window.Util = Util;
 })()
