@@ -231,6 +231,55 @@
     return uniqueArr;
   }
 
+  // Util.readableNumber = function(number) {
+  //   if(isNaN(Number(number))) {
+  //     throw TypeError('arugment must be number or can be transfer into number');
+  //   }
+  //   if(number == 0) return 0;
+  //   var numberStr = '' + number,
+  //     len = numberStr.length,
+  //     index = - 3;
+
+  //   // 第一步：最高位不足3的情况，用0补上
+  //   switch(len % 3) {
+  //     case 1: numberStr = '00' + numberStr; break;
+  //     case 2: numberStr = '0' + numberStr; break;
+  //   }
+  //   var result = "";
+  //   len = numberStr.length;
+  //   // 第二步：从右往做，每隔三个位置打一个","
+  //   while(-index <= len) {
+  //     result =  numberStr.substr(index, 3) + ',' + result;
+  //     index -= 3;
+  //   }
+  //   // 第三步：将第一步在前面添加的0去掉以及尾部多于的","也去掉
+  //   return result.replace(/(^0+|,$)/g, '');
+  // }
+
+  // Util.readableNumber1 = function(number) {
+  //   if(isNaN(Number(number))) {
+  //     throw TypeError('arugment must be number or can be transfer into number');
+  //   }
+  //   if(number == 0) return 0;
+  //   var numberStr = '' + number,
+  //     len = numberStr.length
+  //   // 第一步：最高位不足3的情况，用0补上
+  //   switch(len % 3) {
+  //     case 1: numberStr = '00' + numberStr; break;
+  //     case 2: numberStr = '0' + numberStr; break;
+  //   }
+  //   // 第二步：每隔三个数字添加一个","，并将头部多于的0和尾部多于的","去掉
+  //   return numberStr.replace(/(\d{3})/g, '$1,').replace(/(^0+|,$)/g, '');
+  // }
+
+  /**
+   * 千位符
+   * @param 要转为千位符的数字
+   */
+  Util.toThousands = function(number) {
+    return (number + '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+  }
+
   Util.ajax = function(options) {
 
   }

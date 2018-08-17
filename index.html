@@ -15,5 +15,13 @@
 <script>
  var obj = Util.extend({name: 'liweiji', obj: {phone: '15625444487'}}, {title: '标题', obj: {address: 'xxxx'}}, true);
  console.log(obj);
+
+ var param = '1';
+ for(var i = 0; i < 1000000; i++) {
+  param += i;
+ }
+ var start = Date.now();
+ Util.readableNumber(param);
+ console.log(Date.now() - start)
 </script>
 </html>
