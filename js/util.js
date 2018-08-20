@@ -1,5 +1,7 @@
 ;(function() {
-  var Util = {}
+  var Util = {};
+
+  var emptyFunc = function() {}
 
   /**
    * 判断obj是否为普通对象
@@ -197,7 +199,7 @@
    */
   Util.getParam = function(name) {
     var search = location.search;
-    var matches = search.match("[?&]" + name + "=([^#?&]+)");
+    var matches = search.match("[?&]" + name + "=([^#&]+)");
     return matches.length > 0 ? matches[1] : "";
   }
 
@@ -277,11 +279,149 @@
    * @param 要转为千位符的数字
    */
   Util.toThousands = function(number) {
-    return (number + '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    return (number + '').replace(/(\d+)(?=\.\d+)?/, function(number) {
+      return number.replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    })
   }
 
-  Util.ajax = function(options) {
+  /**
+   * 将data的键值对拼接成一个合法的url
+   * @param url 原始url
+   * @param data 键值对object
+   */
+  Util.generateUrl = function(url, data) {
+    var queryString = this.formatParams(data);
+    if(queryString) {
+      // 有?的情况下，直接将data格式化后的search string append到后面
+      if(url.indexOf("?") > -1) {
+        url += queryString;
+      } else {
+        // 无?的情况下，添加?，然后再append到后面
+        url += "?" + queryString;
+      }
+    }
+    return url;
+  }
 
+  /**
+   * jsonp函数
+   * @param options 参数设置，与jquery ajax的参数一致
+   * url 请求参数
+   * jsonp 请求参数中传给后台的callback名，会被拼接到url中，比如jsonp=callback，url='http://www.xxx.com?callback=xxxx'
+   * data 请求参数键值对
+   * success 请求成功回调
+   * fail 请求失败回调，目前失败只有超时一个原因
+   */
+  Util.jsonp = function(options) {
+    var script = document.createElement("script"),
+      head = document.querySelector("head")
+      jsonp = options.jsonp || 'callback',
+      success = options.success || emptyFunc,
+      fail = options.fail || emptyFunc,
+      timeout = options.timeout || 10000,
+      data = options.data || {},
+      url = options.url;
+    
+
+    // 注册jsonp回调函数，请求成功后自动执行
+    var callbackFunction = 'jsonp_' + Math.random().replace(/\./, '');
+    window[callbackFunction] = function(json) {
+      // 释放内存
+      clearTimeout(timeout);
+      window[callbackFunction] = null;
+      head.removeChild(script);
+      // 执行成功函数
+      success(json);
+    }
+    
+    // 发送请求
+    data[jsonp] = callbackFunction;
+    script.src = this.generateUrl(url, data);
+    head.appendChild(script);
+
+    // 超时处理
+    var timeoutId = setTimeout(function() {
+      // 释放内存
+      window[callbackFunction] = null;
+      head.removeChild(script);
+      // 执行成功函数
+      fail({message: 'timeout'});
+    }, timeout);
+  
+  }
+
+  /**
+   * ajax请求
+   * @param options 如jquery ajax
+   */
+  Util.ajax = function(options) {
+    var type = options.type || 'GET',
+      dataType = options.dataType || 'json',
+      contentType = options.contentType || 'application/x-www-form-urlencoded'
+      data = options.data || null,
+      success = options.success || emptyFunc,
+      fail = options.fail || emptyFunc;
+
+    var xhr = null;
+    if(XMLHttpRequest) {
+      xhr = new XMLHttpRequest();
+    } else {
+      // for IE
+      xhr = new ActiveXObject("Microsoft.XMLHTTP")
+    }
+
+    if(dataType === "jsonp") {
+      this.jsonp(options)
+    } else {
+      if(type === 'GET') {
+        url = this.generateUrl(url, data);
+      }
+      xhr.open(url);
+      xhr.setHeader("content-type", contentType);
+      if(type === 'POST') {
+        xhr.send(data);
+      }
+     
+      xhr.onreadystatechange = function() {
+        if(this.readyState === 4) {
+          if(this.status === '200') {
+            var resData = this.response || this.responseText; // IE9下是responseText
+            success(resData)
+          } else {
+            fail(this.status)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * 格式化输出日期
+   * @param date 时间
+   * @param fmt 格式化 yyyy-MM-dd hh:mm:ss y：年 M: 月 d: 天 h: 小时 m: 分钟 s: 秒
+   */
+  Util.formatDate = function(date, fmt) {
+    var regObj = {
+      "M+": date.getMonth() +1,
+      "d+": date.getDate(),
+      "h+": date.getHours(),
+      "m+": date.getMinutes(),
+      "s+": date.getSeconds()
+    }
+
+    if(/y+/.test(fmt)) {
+      fmt = fmt.replace(/(y+)/, function(m) {
+        return (date.getFullYear() + '').substr(4 - m.length)
+      })
+    }
+
+    for(var key in regObj) {
+      fmt = fmt.replace(new RegExp('(' + key + ')'), function(m) {
+        var value = regObj[key];
+        return m.length === 1 ? regObj[key] : ('00' + value).substr(('' + value).length)
+      })
+    }
+    return fmt;
   }
 
   window.Util = Util;
