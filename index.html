@@ -16,7 +16,7 @@
 <script src="js/util.js"></script>
 <script>
  Util.ajax({
-   url: 'https://api.myjson.com/bins/1goivc',
+   url: 'https://api.myjson.com/bins/1goiv1c',
    dataType: 'json',
    data: {
      id: 14
@@ -24,6 +24,9 @@
    jsonp: 'callback',
    success: function(res) {
      console.log(res.code)
+   },
+   fail(err) {
+     console.log(err)
    }
  })
 </script>

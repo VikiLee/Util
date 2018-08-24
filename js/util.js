@@ -377,6 +377,7 @@
       xhr = new ActiveXObject("Microsoft.XMLHTTP")
     }
 
+
     if(dataType === "jsonp") {
       this.jsonp(options)
     } else {
@@ -387,12 +388,19 @@
         sendData = JSON.stringify(data);
       }
       xhr.open(type, url, async);
+      // 设置返回类型，有json/text/blob/arrybuffer/document/'' IE下无效，注意IE如果放在open前面设置还会报错
+      xhr.responseType = dataType;
       xhr.setRequestHeader("content-type", contentType);
       xhr.send(sendData);
       xhr.onreadystatechange = function() {
         if(this.readyState === 4) {
-          if(this.status === '200') {
+          clearTimeout(timeoutId)
+          if(this.status === 200) {
             var resData = this.response || this.responseText; // IE9下是responseText
+            // 服务器返回的是字符串，需要转为json
+            if(dataType === 'json' && typeof resData !== 'object') {
+              resData = JSON.parse(resData)
+            }
             success(resData);
           } else {
             fail(this.status, {message: this.statusText});
