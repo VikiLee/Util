@@ -324,7 +324,7 @@
     
 
     // 注册jsonp回调函数，请求成功后自动执行
-    var callbackFunction = 'jsonp_' + Math.random().replace(/\./, '');
+    var callbackFunction = ('jsonp_' + Math.random()).replace(/\./, '');
     window[callbackFunction] = function(json) {
       // 释放内存
       clearTimeout(timeout);
@@ -360,38 +360,50 @@
       contentType = options.contentType || 'application/x-www-form-urlencoded'
       data = options.data || null,
       success = options.success || emptyFunc,
-      fail = options.fail || emptyFunc;
+      url = options.url,
+      timeout = options.timeout || 10000,
+      async = options.async || true
+      fail = options.fail || emptyFunc,
+      timeoutId = null;
 
+    if(!url) {
+      return;
+    }
     var xhr = null;
     if(XMLHttpRequest) {
       xhr = new XMLHttpRequest();
     } else {
-      // for IE
+      // for IE6 IE5
       xhr = new ActiveXObject("Microsoft.XMLHTTP")
     }
 
     if(dataType === "jsonp") {
       this.jsonp(options)
     } else {
+      var sendData = null;
       if(type === 'GET') {
         url = this.generateUrl(url, data);
+      } else {
+        sendData = JSON.stringify(data);
       }
-      xhr.open(url);
-      xhr.setHeader("content-type", contentType);
-      if(type === 'POST') {
-        xhr.send(data);
-      }
-     
+      xhr.open(type, url, async);
+      xhr.setRequestHeader("content-type", contentType);
+      xhr.send(sendData);
       xhr.onreadystatechange = function() {
         if(this.readyState === 4) {
           if(this.status === '200') {
             var resData = this.response || this.responseText; // IE9下是responseText
-            success(resData)
+            success(resData);
           } else {
-            fail(this.status)
+            fail(this.status, {message: this.statusText});
           }
         }
       }
+
+      timeoutId = setTimeout(function() {
+        xhr.abort();
+        fail(408, {message: 'timeout'});
+      }, timeout);
     }
   }
 
