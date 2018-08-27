@@ -147,7 +147,7 @@
    * @param days cookie过期天数
    */
   Util.setCookie = function(name, value, days) {
-   var cookieStr = encodeURIComponent(name) + "+" + decodeURIComponent(value);
+   var cookieStr = encodeURIComponent(name) + "+" + encodeURIComponent(value);
     if(days) {
       var date = new Date();
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
@@ -390,7 +390,7 @@
       xhr.open(type, url, async);
       // 设置返回类型，有json/text/blob/arrybuffer/document/'' IE下无效，注意IE如果放在open前面设置还会报错
       xhr.responseType = dataType;
-      xhr.setRequestHeader("content-type", contentType);
+      xhr.setRequestHeader("Content-type", contentType);
       xhr.send(sendData);
       xhr.onreadystatechange = function() {
         if(this.readyState === 4) {
@@ -438,10 +438,33 @@
     for(var key in regObj) {
       fmt = fmt.replace(new RegExp('(' + key + ')'), function(m) {
         var value = regObj[key];
-        return m.length === 1 ? regObj[key] : ('00' + value).substr(('' + value).length)
+        return m.length === 1 ? value : ('00' + value).substr(('' + value).length)
       })
     }
     return fmt;
+  }
+
+  Util.filterXSS = function(input) {
+    return input.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  }
+
+  /**
+  * 恢复被跨站脚本过滤过的输入内容
+  */
+  Util.htmldecode = function (s){
+    var div = document.createElement('div');  
+    div.innerHTML = s;  
+    return div.innerText || div.textContent;  
+  }
+
+  Util.searchBinary = function(arr, value) {
+    var index = Math.floor(arr.length / 2);
+    var mid = arr[index];
+    if(value === mid || arr.length === 0) {
+      return index;
+    }
+    this.searchBinary(arr.slice(0, index - 1), value);
+    this.searchBinary(arr.slice(index + 1, arr.length));
   }
 
   window.Util = Util;
