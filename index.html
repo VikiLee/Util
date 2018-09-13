@@ -5,29 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+  <link href="./css/style.css" rel="stylesheet"/>
+  <!-- <script src="js/test.js"></script> -->
+
 </head>
 <body>
   <div id="view">
     <div>
-        test    sadsadsa
-    </div
+        test
+    </div>
+    <img src="https://tb1.bdstatic.com/tb/cms/liveshow/ent_slid2.jpg" />
+    <img src="https://tb1.bdstatic.com/tb/cms/liveshow/ent_slid1.jpg" />
+    <img src="https://tb1.bdstatic.com/tb/cms/liveshow/ent_slid3.jpg" />
+    <img src="https://tb1.bdstatic.com/tb/cms/liveshow/ent_slid4.jpg" />
+    <img src="https://tb1.bdstatic.com/tb/cms/ngmis/images/file_1536030771114.jpg" />
+    <img src="https://tb1.bdstatic.com/tb/r/image/2016-03-25/034117a81ce8afcd9bee4fcd73ee8561.png" />
+    <img data-src="https://tb1.bdstatic.com/tb/cms/ngmis/images/file_1536030470930.jpg" id="lastImage"/>
+    <p>
+      <p>sdasdsad</p>
+    </p>
   </div>
 </body>
-<script src="js/util.js"></script>
+<link href="./css/style.css" rel="stylesheet"/>
+<link href="https://b-gold-cdn.xitu.io/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+<!-- <script src="js/util.js"></script> -->
+<script src="js/jquery.min.js"></script>
 <script>
- Util.ajax({
-   url: 'https://api.myjson.com/bins/1goiv1c',
-   dataType: 'json',
-   data: {
-     id: 14
-   },
-   jsonp: 'callback',
-   success: function(res) {
-     console.log(res.code)
-   },
-   fail(err) {
-     console.log(err)
-   }
- })
+//  Util.ajax({
+//    url: 'https://api.myjson.com/bins/1goiv1c',
+//    dataType: 'json',
+//    data: {
+//      id: 14
+//    },
+//    jsonp: 'callback',
+//    success: function(res) {
+//      console.log(res.code)
+//    },
+//    fail(err) {
+//      console.log(err)
+//    }
+//  })
+function binarySearch(arr, low, high, value) {
+    if(low > high) {
+        return -1
+    }
+    var index = Math.floor((low + high) / 2)
+    if(arr[index] === value){
+        return index
+    } else if(arr[index] > value) {
+        return binarySearch(arr, low, index - 1, value)
+    } else {
+        return binarySearch(arr, index + 1, high, value)
+    } 
+}
+
+function isArray(arr) {
+  return Object.prototype.toString.call(arr) === "[object Array]"
+}
+
+function deepClone(target) {
+  var copy;
+  // 复制对象，根据被复制对象的类型初始化
+  if(isArray(target)) {
+    copy = [];
+  } else if(target instanceof Object) {
+    copy = {};
+  } else {
+    return target;
+  }
+  for(var key in target) {
+    // 被复制的属性值
+    var value = target[key];
+  
+    if(value instanceof Array || value instanceof Object) {
+      // 如果是Array/Object类型，则递归复制
+      copy[key] = deepClone(value)
+    } else {
+      copy[key] = target[key];
+    }
+  }
+  return copy;
+}
+
+ window.onload = function() {
+   if(!('performance' in window) || !('getEntriesByType' in  performance)) {
+     console.log('Resource Timing API not supported')
+   } else {
+    var resources = performance.getEntriesByType("resource");
+    resources.map((resource) => {
+      if(resource.initiatorType === 'img') {
+        console.log('spend time:', resource.duration)
+      }
+     
+    })
+
+    var lastImg = document.getElementById("lastImage");
+    var root = document.documentElement;
+    var clientHeight = root.clientHeight
+
+
+    document.addEventListener("scroll", () => {
+      var rect = lastImg.getBoundingClientRect()
+      if(rect.top < clientHeight - 10) {
+        lastImg.src = lastImg.dataset.src;
+      }
+    })
+
+    let regExp = new RegExp('(?<=\\d+\\.(\\d+)?)([.]+\\d*)', 'g')
+    var str = '23.4521.6445..3564'
+    console.log(str.replace(regExp, ''))
+  }
+}
 </script>
 </html>

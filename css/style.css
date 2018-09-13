@@ -1,0 +1,16 @@
+html,body {
+  height: 100%;
+  width: 100%;
+}
+
+#view {
+  color: red;
+  width: 200px;
+  height: 300px
+}
+
+img {
+  margin-top: 100px;
+  width: 180px;
+  height: 142px;
+}

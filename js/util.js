@@ -7,20 +7,20 @@
    * 判断obj是否为普通对象
    * @param obj 被判断对象
    */
-  Util.isPlainObject = function(obj) {
-    // 排除简单类型/node对象/window对象
-    if(typeof obj !== "object" || obj.nodeType || obj.self === self) {
-      return false;
+    Util.isPlainObject = function(obj) {
+      // 排除简单类型/node对象/window对象
+      if(typeof obj !== "object" || obj.nodeType || obj.self === self) {
+        return false;
+      }
+
+      // RegExp对象和Array排除
+      if(obj.construtor && !Object.prototype.hasOwnProperty.call(obj.constructor.prototype, "isPrototypeOf")) {
+        return false;
+      }
+
+      return true;
+
     }
-
-    // RegExp对象和Array排除
-    if(obj.construtor && !Object.prototype.hasOwnProperty.call(obj.construtor, "isPrototypeOf")) {
-      return false;
-    }
-
-    return true;
-
-  }
 
   /**
    * 复制对象，第一个参数是目标，第二个三个...是被复制对象，最后一个参数，如果是布尔值，则是是否深复制的参数
@@ -56,7 +56,11 @@
               targetAttribute = this.isArray(target[key]) ? target[key] : [];
               // 数组对象，通过递归调用的方式复制
               target[key] = this.extend(targetAttribute, copy[key], isDeepCopy);
-            } else {
+            } else if(isDeepCopy && copy[key] instanceof RegExp) {
+              target[key] = new RegExp(copy[key].source, copy[key].flags);
+            } else if(isDeepCopy && copy[key] instanceof Date) {
+              target[key] = new Date(copy[key].valueOf());
+            }else {
               target[key] = copy[key];
             }
           }
@@ -377,7 +381,6 @@
       xhr = new ActiveXObject("Microsoft.XMLHTTP")
     }
 
-
     if(dataType === "jsonp") {
       this.jsonp(options)
     } else {
@@ -457,14 +460,43 @@
     return div.innerText || div.textContent;  
   }
 
-  Util.searchBinary = function(arr, value) {
-    var index = Math.floor(arr.length / 2);
-    var mid = arr[index];
-    if(value === mid || arr.length === 0) {
-      return index;
+  Util.searchBinary = function(arr, low, high, value) {
+    if(low > high) {
+      return -1;
     }
-    this.searchBinary(arr.slice(0, index - 1), value);
-    this.searchBinary(arr.slice(index + 1, arr.length));
+
+    var index = Math.floor((low + high) / 2),
+      mid = arr[index];
+
+    if(mid === value) {
+      return index;
+    } else if(mid > value) {
+      return this.searchBinary(arr, low, index - 1, value)
+    } else {
+      return this.searchBinary(arr, index + 1, high, value)
+    }
+  }
+
+  Util.getPriceFormat = function(originPriceStr, integerLen ,decimalLen) {
+    // 0开头.开头或者非数字的都去掉
+    let value = originPriceStr.replace(/^0|^\.|[^\d.]/g, '')
+    // 将多余不符合的.去掉
+    let regExp = new RegExp('(?<=\\d+\\.(\\d+)?)([.]+\\d*)+', 'g')
+    value = value.replace(regExp, '')
+    // xxx?.xx?格式
+    if(value.indexOf(".") > -1) {
+      regExp = new RegExp("(?<=\\d+\\.)(\\d+)")
+      value = value.replace(regExp, (m) => {
+        return m.substr(0, decimalLen)
+      })
+      regExp = new RegExp("(\\d+)(?=\\.\\d)")
+      value = value.replace(regExp, (m) => {
+        return m.substr(0, integerLen)
+      })
+    } else {
+      value = value.substring(0, integerLen)
+    }
+    return value = value
   }
 
   window.Util = Util;
